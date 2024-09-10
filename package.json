@@ -6,7 +6,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node server.ts",
     "build": "tsc"
-   
   },
   "author": "",
   "license": "ISC",
@@ -19,8 +18,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "prisma": "^5.19.1"
   }
 }
-
-
