@@ -1,7 +1,6 @@
-
 import { Router } from "express";
-import {}
+import { root, signup, login } from "../controllers/user";
 const router = Router();
-router.get("/". root),
-router.post("/signup",signup);
-router.post("/login",login);
+router.get("/", root), 
+router.post("/signup", signup);
+router.post("/login", login);

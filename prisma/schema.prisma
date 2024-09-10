@@ -4,6 +4,9 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// npx prisma migrate dev --name add-points-to-tasks
+// npx prisma generate
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +14,31 @@ generator client {
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  email         String @unique
+  name          String
+  role          Role
+  vpId          Int?
+  managerId     Int?
+  averagePoints Float  @default(0)
+  tasks         Task[]
+}
+
+enum Role {
+  VP
+  MANAGER
+  EMPLOYEE
+}
+
+model Task {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  points      Float?
+  status      String  @default("Pending")
+  userId      String  @db.ObjectId
+  user        User    @relation(fields: [userId], references: [id])
 }
