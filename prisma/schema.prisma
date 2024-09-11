@@ -21,6 +21,7 @@ model User {
   email         String @unique
   //image         String
   name          String
+  totpSecret    String
   password      String
   designation   String
   role          Role

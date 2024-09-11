@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
 import nodemailer from "nodemailer";
-
+import speakeasy from "speakeasy";
 const prisma = new PrismaClient();
 
 export const root = async (req: Request, res: Response) => {
@@ -116,6 +116,11 @@ export const signup = async (req: Request, res: Response) => {
         error: "User with this Email already exist",
       });
     }
+    // Generate a TOTP secret for Google Authenticator
+    const totpSecret = speakeasy.generateSecret({
+      length: 20,
+      name: "H3k", // Application name to show in Google Authenticator
+    });
 
     //create a new user in db
 
@@ -126,6 +131,7 @@ export const signup = async (req: Request, res: Response) => {
         password: await bcrypt.hash(validaetData.password, 10),
         role: invitation.role,
         designation: invitation.designation,
+        totpSecret: totpSecret.base32,
       },
     });
 
@@ -135,7 +141,11 @@ export const signup = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json(`User ${newUser.name} created successfully `);
+    res.status(201).json({
+      message: `User ${newUser.name} created successfully`,
+      totpUrl: totpSecret.otpauth_url,
+      manualEntryKey: totpSecret.base32,
+    });
   } catch (error) {
     //if zod error validation error
     if (error instanceof z.ZodError) {
@@ -212,4 +222,36 @@ export const deleteUser = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const resetPasswordSchema = z.object({
+    email: z.string(),
+    newPassword: z.string(),
+    totp: z.string(),
+  });
+
+  const { email, newPassword, totp } = resetPasswordSchema.parse(req.body);
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    return res.status(400).json({ error: "User not found" });
+  }
+  // Verify TOTP
+  const isVerified = speakeasy.totp.verify({
+    secret: user.totpSecret, // stored TOTP secret
+    encoding: "base32",
+    token: totp,
+  });
+
+  if (!isVerified) {
+    return res.status(400).json({ error: "Invalid TOTP" });
+  }
+  // Update password if TOTP is correct
+  await prisma.user.update({
+    where: { email },
+    data: { password: newPassword },
+  });
+  res.status(200).json({ message: "Password reset successful" });
 };
