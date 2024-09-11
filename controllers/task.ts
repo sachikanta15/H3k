@@ -207,3 +207,44 @@ export const changeTaskStatus = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error." });
   }
 };
+
+export const deleteTask = async (req: Request, res: Response) => {
+  const deleteTaskSchema = z.object({
+    taskId: z.string(),
+    userId: z.string(),
+  });
+
+  const parsedData = deleteTaskSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    return res.status(400).json({ error: parsedData.error.errors });
+  }
+
+  const { taskId, userId } = parsedData.data;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user || !["MANAGER", "EMPLOYEE"].includes(user.role)) {
+      return res
+        .status(403)
+        .json({ error: "Only managers or employees can delete task ." });
+    }
+    const existingTask = await prisma.task.findUnique({
+      where: { id: taskId },
+    });
+    if (!existingTask) {
+      return res.status(404).json({ error: "Task not found." });
+    }
+    const deleteTask = await prisma.task.delete({
+      where: { id: taskId },
+    });
+    res.json({
+      message: "Task Deleted successfully.",
+      task: deleteTask,
+    });
+  } catch (error) {
+    console.error("Error in Deleting task:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+};
