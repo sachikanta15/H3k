@@ -1,4 +1,5 @@
 import { Router } from "express";
-import 
+import { createTask } from "../controllers/task";
+
 const router = Router();
-app.post("/task",createTask)
+router.post("/task",createTask)
