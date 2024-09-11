@@ -24,6 +24,7 @@ export const inviteUser = async (req: Request, res: Response) => {
     });
 
     const validatedData = inviteUserSchema.parse(req.body);
+    const { email } = validatedData;
     const existingUser = await prisma.user.findUnique({
       where: {
         email: validatedData.email,
@@ -94,7 +95,7 @@ export const signup = async (req: Request, res: Response) => {
     const validaetData = userSchema.parse(req.body);
 
     //check for valid invation
-    const invitation = await prisma.invitation.findUnique({
+    const invitation = await prisma.invitation.findFirst({
       where: {
         email: validaetData.email,
       },
@@ -190,5 +191,25 @@ export const login = async (req: Request, res: Response) => {
     }
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const deleteUserSchema = z.object({
+      userId: z.string(),
+    });
+    const validaetData = deleteUserSchema.parse(req.params.id);
+    const deleteUser = await prisma.user.delete({
+      where: {
+        id: validaetData.userId,
+      },
+    });
+    if (!deleteUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
