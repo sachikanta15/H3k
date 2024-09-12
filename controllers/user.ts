@@ -9,8 +9,8 @@ import speakeasy from "speakeasy";
 const prisma = new PrismaClient();
 
 export const root = async (req: Request, res: Response) => {
-  console.log("printing from the root");
-  res.send("Welcome to the H3k ");
+  console.log("printing from the root user");
+  res.send("Welcome to the H3k from User");
 };
 
 //Defineing the Zod schema for user validation while runtime
@@ -40,6 +40,7 @@ export const inviteUser = async (req: Request, res: Response) => {
       data: {
         email: validatedData.email,
         role: validatedData.role,
+        designation:validatedData.designation
       },
     });
 

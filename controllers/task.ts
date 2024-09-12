@@ -8,6 +8,10 @@ const prisma = new PrismaClient();
 
 //creating task api endpoints
 
+export const root = async (req: Request, res: Response) => {
+  console.log("printing from the root task");
+  res.send("Welcome to the H3k from task");
+};
 export const createTask = async (req: Request, res: Response) => {
   const taskSchema = z.object({
     title: z.string().min(1, "Title is Required"),
@@ -140,7 +144,7 @@ export const reviewTask = async (req: Request, res: Response) => {
 
     let updateTask;
     if (existingTask.status === "Completed") {
-      updateTask = await primsa.task.update({
+      updateTask = await prisma.task.update({
         where: { id: taskId },
         data: {
           points,

@@ -1,7 +1,10 @@
 import express, { Request, Response } from "express";
 import "dotenv/config";
-// import userRouter from "./routes/user.ts"
+import userRoutes from "./routes/user";
+import taskRoutes from "./routes/task";
 const app = express();
 app.use(express.json());
-// app.use("/api/v1/createUsers",userRouter);
+
+app.use("/user", userRoutes);
+app.use("/task", taskRoutes);
 export default app;

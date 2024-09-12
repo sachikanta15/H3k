@@ -6,8 +6,11 @@ import {
   deleteUser,
   resetPassword,
 } from "../controllers/user";
+
 const router = Router();
-router.get("/", root), router.post("/signup", signup);
+router.get("/", root), 
+router.post("/signup", signup);
 router.post("/login", login);
-router.delete("accountDelete/:id", deleteUser);
+router.delete("/accountDelete/:id", deleteUser);
 router.post("/resetPassword", resetPassword);
+export default router;
