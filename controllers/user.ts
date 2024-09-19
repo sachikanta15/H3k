@@ -212,3 +212,32 @@ export const createProject = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const project = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  try {
+    const projectSchema = z.object({
+      name: z.string().min(1, "UserId is Required"),
+    });
+    // Validate the request body against the schema
+    const validatedData = projectSchema.parse(userId);
+    const getAllProjects = await prisma.projects.findMany();
+    if (!getAllProjects) {
+      return res.status(400).json({
+        error: "NO Projects Found",
+      });
+    }
+    res.status(201).json("All Projects Fetch SuccessFully");
+  } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        errors: error.errors,
+      });
+    }
+    // Handle other errors (e.g., server issues)
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};
