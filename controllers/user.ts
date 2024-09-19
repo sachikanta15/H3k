@@ -213,21 +213,18 @@ export const createProject = async (req: Request, res: Response) => {
   }
 };
 
-export const project = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+export const projects = async (req: Request, res: Response) => {
   try {
-    const projectSchema = z.object({
-      name: z.string().min(1, "UserId is Required"),
-    });
-    // Validate the request body against the schema
-    const validatedData = projectSchema.parse(userId);
     const getAllProjects = await prisma.projects.findMany();
     if (!getAllProjects) {
       return res.status(400).json({
         error: "NO Projects Found",
       });
     }
-    res.status(201).json("All Projects Fetch SuccessFully");
+    return res.status(200).json({
+      message: "All Projects Fetched Successfully",
+      projects: getAllProjects, // Return the projects here
+    });
   } catch (error) {
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
@@ -236,6 +233,30 @@ export const project = async (req: Request, res: Response) => {
       });
     }
     // Handle other errors (e.g., server issues)
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};
+
+export const getProjects = async (req: Request, res: Response) => {
+  const projectId = req.body;
+  try {
+    const getProjects = await prisma.projects.findUnique({
+      where: {
+        id: projectId,
+      },
+    });
+    if (!getProjects) {
+      return res.status(400).json({
+        error: "NO Projects Found",
+      });
+    }
+    return res.status(200).json({
+      message: "Projects Details Fetched Successfully",
+      projects: getProjects, // Return the projects details
+    });
+  } catch (error) {
     res.status(500).json({
       error: "Internal Server Error",
     });

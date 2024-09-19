@@ -37,10 +37,8 @@ model Projects {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   projectRating Float?
-  //employeesName User all employee assign to this projects
   startingDate  DateTime
   endDate       DateTime
-  //manager manager assign to respective project
 }
 
 
