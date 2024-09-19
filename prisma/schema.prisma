@@ -3,7 +3,7 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// npx prisma db push
 // npx prisma migrate dev --name add-points-to-tasks
 // npx prisma generate
 
@@ -17,50 +17,30 @@ datasource db {
 }
 
 model User {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  email         String @unique
-  //image         String
-  name          String
-  password      String
-  designation   String
-  role          Role
-  vpId          Int?
-  managerId     Int?
-  averagePoints Float  @default(0)
-  tasks         Task[]
-}
-
-model Invitation {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   email       String @unique
-  role        Role
+  //image         String
+  name        String
+  password    String
   designation String
+  role        Role?
+  rating      Float  @default(0)
 }
 
 enum Role {
-  VP
+  ADMIN
   MANAGER
   EMPLOYEE
-}
-
-model Task {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  points      Float?
-  status      String  @default("Pending")
-  userId      String  @db.ObjectId
-  user        User    @relation(fields: [userId], references: [id])
 }
 
 model Projects {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
-  projectRating Float
+  projectRating Float?
   //employeesName User all employee assign to this projects
   startingDate  DateTime
   endDate       DateTime
   //manager manager assign to respective project
 }
 
-//start date , end date
+
