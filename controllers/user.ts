@@ -118,11 +118,14 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log("printing the id");
+  console.log(id);
   try {
     const deleteUserSchema = z.object({
       userId: z.string(),
     });
-    const validaetData = deleteUserSchema.parse(req.params.id);
+    const validaetData = deleteUserSchema.parse(id);
     const deleteUser = await prisma.user.delete({
       where: {
         id: validaetData.userId,
@@ -134,5 +137,78 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const createProject = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  console.log("printing the userId");
+  console.log(userId);
+  try {
+    // Extract userId from the request parameters
+
+    // Find the user from the database using the userId
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }, // Only fetch the role of the user
+    });
+
+    // Check if the user exists and if the role is 'Manager'
+    if (!user || user.role !== "MANAGER") {
+      return res.status(403).json({
+        error: "Access denied. Only Managers can create projects.",
+      });
+    }
+
+    // Define schema for project data validation
+    const projectSchema = z.object({
+      name: z.string().min(1, "Project Name is Required"),
+      startingDate: z.string().date(),
+      endDate: z.string().date(),
+    });
+
+    // Validate the request body against the schema
+    const validatedData = projectSchema.parse(req.body);
+    console.log("printing the validate data");
+    console.log(validatedData);
+
+    // Check if a project with the same name already exists
+
+    const existingProject = await prisma.projects.findUnique({
+      //@ts-ignore
+      where: {
+        name: validatedData.name,
+      },
+    });
+
+    if (existingProject) {
+      return res.status(400).json({
+        error: "Project already exists",
+      });
+    }
+
+    // Create a new project in the database
+    const newProject = await prisma.projects.create({
+      data: {
+        name: validatedData.name,
+        startingDate: validatedData.startingDate,
+        endDate: validatedData.endDate,
+      },
+    });
+
+    // Return a success response
+    res.status(201).json(`${newProject.name} Project created successfully`);
+  } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        errors: error.errors,
+      });
+    }
+
+    // Handle other errors (e.g., server issues)
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
   }
 };
