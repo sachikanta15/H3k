@@ -113,6 +113,7 @@ model Feedback {
 enum Role {
   MANAGER
   EMPLOYEE
+  ADMIN
 }
 
 enum ProjectStatus {

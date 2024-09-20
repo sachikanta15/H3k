@@ -39,11 +39,23 @@ export const authMiddleware = async (
 
 export const isManager = (req: Request, res: Response, next: NextFunction) => {
   console.log("printing from the isManager");
-  //@ts-ignore
-  console.log(req.body.role);
+  
+  
 
   //@ts-ignore
   if (req.role !== "MANAGER") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  next();
+};
+
+
+export const isAmin = (req: Request, res: Response, next: NextFunction) => {
+  console.log("printing from the isAdmin");
+
+
+  //@ts-ignore
+  if (req.role !== "ADMIN") {
     return res.status(403).json({ error: "Access denied" });
   }
   next();

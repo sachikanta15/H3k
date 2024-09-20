@@ -22,7 +22,7 @@ export const signup = async (req: Request, res: Response) => {
       email: z.string().email("Invalid email address"),
       designation: z.string(),
       password: z.string().min(6),
-      role: z.enum(["MANAGER", "EMPLOYEE"]),
+      role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]),
     });
     //validate userinpuut from zod
     const validaetData = userSchema.parse(req.body);
@@ -534,9 +534,12 @@ export const rateProjectAndEmployees = async (req: Request, res: Response) => {
   }
 };
 
-export const employee = async (req: Request, res: Response) => {
+export const getEmployeesWithProjectDetails = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const allUser = await prisma.user.findMany({
+    const allEmployees = await prisma.user.findMany({
       where: {
         role: "EMPLOYEE",
       },
@@ -546,40 +549,59 @@ export const employee = async (req: Request, res: Response) => {
         email: true,
         role: true,
         designation: true,
+        // Include project assignments for each employee
+        projectAssignments: {
+          select: {
+            project: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+          },
+        },
       },
     });
-    return res.status(200).json({
-      message: "All Users Fetched Successfully",
-      users: allUser,
-    });
-  } catch (error) {
-    console.error("Error in projects route:", error);
-    res.status(500).json({
-      error: "Internal Server Error",
-    });
-  }
-};
 
-export const manager = async (req: Request, res: Response) => {
-  try {
-    const allUser = await prisma.user.findMany({
-      where: {
-        role: "MANAGER",
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        designation: true,
-      },
+    const employeesWithProjectStats = allEmployees.map((employee) => {
+      const totalProjects = employee.projectAssignments.length;
+
+      // Count the number of projects based on their status
+      const completedProjects = employee.projectAssignments.filter(
+        (assignment) => assignment.project.status === "COMPLETED"
+      ).length;
+      const ongoingProjects = employee.projectAssignments.filter(
+        (assignment) => assignment.project.status === "ONGOING"
+      ).length;
+      const pendingProjects = employee.projectAssignments.filter(
+        (assignment) => assignment.project.status === "PENDING"
+      ).length;
+
+      return {
+        id: employee.id,
+        name: employee.name,
+        email: employee.email,
+        designation: employee.designation,
+        totalProjects,
+        completedProjects,
+        ongoingProjects,
+        pendingProjects,
+        projects: employee.projectAssignments.map(
+          (assignment) => assignment.project
+        ), // All project details for the employee
+      };
     });
+
     return res.status(200).json({
-      message: "All Users Fetched Successfully",
-      users: allUser,
+      message: "All Employees Fetched Successfully",
+      employees: employeesWithProjectStats,
     });
   } catch (error) {
-    console.error("Error in projects route:", error);
+    console.error("Error in fetching employees:", error);
     res.status(500).json({
       error: "Internal Server Error",
     });
@@ -596,6 +618,76 @@ export const allProjects = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in projects route:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};
+
+export const getManagersWithProjectDetails = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    // Fetch all managers
+    const allManagers = await prisma.user.findMany({
+      where: {
+        role: "MANAGER",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        designation: true,
+        // Include projects for each manager
+        projectsManaged: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+      },
+    });
+
+    // Iterate over each manager and group project statuses
+    const managersWithProjectStats = allManagers.map((manager) => {
+      const totalProjects = manager.projectsManaged.length;
+
+      // Count the number of projects based on their status
+      const completedProjects = manager.projectsManaged.filter(
+        (project) => project.status === "COMPLETED"
+      ).length;
+      const ongoingProjects = manager.projectsManaged.filter(
+        (project) => project.status === "ONGOING"
+      ).length;
+      const pendingProjects = manager.projectsManaged.filter(
+        (project) => project.status === "PENDING"
+      ).length;
+
+      return {
+        id: manager.id,
+        name: manager.name,
+        email: manager.email,
+        designation: manager.designation,
+        totalProjects,
+        completedProjects,
+        ongoingProjects,
+        pendingProjects,
+        projects: manager.projectsManaged, // All project details for the manager
+      };
+    });
+
+    res.status(200).json({
+      message: "Managers and their projects fetched successfully",
+      managers: managersWithProjectStats,
+    });
+  } catch (error) {
+    console.error("Error fetching managers with project details:", error);
     res.status(500).json({
       error: "Internal Server Error",
     });

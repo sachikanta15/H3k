@@ -8,11 +8,15 @@ import {
   rateProjectAndEmployees,
   projects,
   getProject,
-  employee,
-  manager,
   allProjects,
+  getManagersWithProjectDetails,
+  getEmployeesWithProjectDetails,
 } from "../controllers/user";
-import { authMiddleware, isManager } from "../middleware/authMiddleware";
+import {
+  authMiddleware,
+  isAmin,
+  isManager,
+} from "../middleware/authMiddleware";
 const router = Router();
 router.get("/", root), router.post("/signup", signup);
 router.post("/login", login);
@@ -32,8 +36,19 @@ router.post(
   rateProjectAndEmployees
 );
 
-router.get("/employee", employee);
-router.get("/manager", manager);
 router.get("/globalProjects", allProjects);
+router.get(
+  "/getManagersWithProjectDetails",
+  authMiddleware,
+  isAmin,
+  getManagersWithProjectDetails
+);
+
+router.get(
+  "/getEmployeesWithProjectDetails",
+  authMiddleware,
+  isAmin,
+  getEmployeesWithProjectDetails
+);
 
 export default router;
