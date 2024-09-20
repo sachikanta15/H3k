@@ -39,6 +39,7 @@ model Projects {
   projectRating Float?
   startingDate  DateTime
   endDate       DateTime
+  manager       User @relation(fields: [id], references: [id])
 }
 
 
