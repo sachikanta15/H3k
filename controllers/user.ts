@@ -50,10 +50,14 @@ export const signup = async (req: Request, res: Response) => {
         email: validaetData.email,
         password: await bcrypt.hash(validaetData.password, 10),
         designation: validaetData.designation,
+        role: validaetData.role
       },
     });
 
-    res.status(201).json(`User ${newUser.name} created successfully `);
+    res.status(201).json({
+      message: `User ${newUser.name} created successfully `,
+      
+    });
   } catch (error) {
     //if zod error validation error
     if (error instanceof z.ZodError) {
@@ -97,6 +101,12 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    const userDetails = await prisma.user.findUnique({
+      where: {
+        email:email
+      }
+    })
+
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
       expiresIn: "1h",
     });
@@ -104,8 +114,9 @@ export const login = async (req: Request, res: Response) => {
     // Send the token back to the client
     res.json({
       message: "Login successful",
-      id: user.id,
+      // id: user.id,
       token,
+      userDetails
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
