@@ -10,6 +10,7 @@ import {
   getProject,
   employee,
   manager,
+  allProjects,
 } from "../controllers/user";
 import { authMiddleware, isManager } from "../middleware/authMiddleware";
 const router = Router();
@@ -33,5 +34,6 @@ router.post(
 
 router.get("/employee", employee);
 router.get("/manager", manager);
+router.get("/globalProjects", allProjects);
 
 export default router;

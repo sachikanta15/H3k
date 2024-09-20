@@ -535,7 +535,6 @@ export const rateProjectAndEmployees = async (req: Request, res: Response) => {
 };
 
 export const employee = async (req: Request, res: Response) => {
-  
   try {
     const allUser = await prisma.user.findMany({
       where: {
@@ -578,6 +577,22 @@ export const manager = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "All Users Fetched Successfully",
       users: allUser,
+    });
+  } catch (error) {
+    console.error("Error in projects route:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};
+
+///get all projects across the db
+export const allProjects = async (req: Request, res: Response) => {
+  try {
+    const globalprojects = await prisma.project.findMany();
+    return res.status(200).json({
+      message: "All Projects Fetched Successfully across the db",
+      users: globalprojects,
     });
   } catch (error) {
     console.error("Error in projects route:", error);
