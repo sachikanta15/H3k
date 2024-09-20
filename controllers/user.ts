@@ -106,9 +106,7 @@ export const login = async (req: Request, res: Response) => {
       },
     });
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
-      // expiresIn: "1h",
-    });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
 
     // Send the token back to the client
     res.json({
@@ -314,14 +312,76 @@ export const createProject = async (req: Request, res: Response) => {
 //   }
 // };
 
+// export const projects = async (req: Request, res: Response) => {
+//   try {
+//     // Assuming you have middleware that adds user information to the request
+//     console.log("printin gthe req");
+//     //@ts-ignore
+//     console.log(req.user);
+//     //@ts-ignore
+
+//     const userId = req.user;
+
+//     if (!userId) {
+//       return res.status(401).json({
+//         error: "Unauthorized: User information not found",
+//       });
+//     }
+
+//     const getAllProjects = await prisma.project.findMany({
+//       where: {
+//         OR: [
+//           { managerId: userId },
+//           {
+//             employees: {
+//               some: {
+//                 employeeId: userId,
+//               },
+//             },
+//           },
+//         ],
+//       },
+//       select: {
+//         id: true,
+//         name: true,
+//         description: true,
+//         status: true,
+//         startDate: true,
+//         endDate: true,
+//         managerId: true,
+//         ratings: true,
+//       },
+//     });
+
+//     if (getAllProjects.length === 0) {
+//       return res.status(404).json({
+//         message: "No Projects Found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       message: "All Projects Fetched Successfully",
+//       projects: getAllProjects,
+//     });
+//   } catch (error) {
+//     // Handle Zod validation errors
+//     if (error instanceof z.ZodError) {
+//       return res.status(400).json({
+//         errors: error.errors,
+//       });
+//     }
+//     // Handle other errors (e.g., server issues)
+//     console.error("Error in projects route:", error);
+//     res.status(500).json({
+//       error: "Internal Server Error",
+//     });
+//   }
+// };
+
 export const projects = async (req: Request, res: Response) => {
   try {
-    // Assuming you have middleware that adds user information to the request
-    console.log("printin gthe req");
+    // Assuming middleware adds user information to the request
     //@ts-ignore
-    console.log(req.user);
-    //@ts-ignore
-
     const userId = req.user;
 
     if (!userId) {
@@ -351,6 +411,17 @@ export const projects = async (req: Request, res: Response) => {
         startDate: true,
         endDate: true,
         managerId: true,
+        // Filter ratings by the current userId
+        ratings: {
+          where: {
+            employeeId: userId, // Only include ratings related to the current user
+          },
+          select: {
+            rating: true,
+            review: true,
+            employeeId: true,
+          },
+        },
       },
     });
 
@@ -401,6 +472,9 @@ export const getProject = async (req: Request, res: Response) => {
       },
       include: {
         manager: true,
+        // employees: true,
+        ratings: true,
+        feedbacks: true,
         employees: {
           include: {
             employee: true,
@@ -427,18 +501,18 @@ export const getProject = async (req: Request, res: Response) => {
 };
 
 export const rateProjectAndEmployees = async (req: Request, res: Response) => {
-  const projectId = parseInt(req.params.id);
+  const projectId = req.params.id;
   const { projectRating, employeeRatings } = req.body;
 
   try {
     // Update project rating
-    await prisma.rating.create({
-      data: {
-        projectId: projectId.toString(),
-        rating: projectRating.rating,
-        review: projectRating.review,
-      },
-    });
+    // await prisma.rating.create({
+    //   data: {
+    //     projectId: projectId.toString(),
+    //     rating: projectRating.rating,
+    //     review: projectRating.review,
+    //   },
+    // });
 
     // Rate employees
     for (const rating of employeeRatings) {
@@ -454,6 +528,8 @@ export const rateProjectAndEmployees = async (req: Request, res: Response) => {
 
     res.json({ message: "Project and employee ratings submitted" });
   } catch (error) {
+    console.log("printing the error", error);
+
     res.status(500).json({ error: "Rating submission failed" });
   }
 };

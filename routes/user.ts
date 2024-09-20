@@ -23,7 +23,7 @@ router.get("/projects", authMiddleware, projects); //get ll the projects without
 router.get("/project/:projectId", authMiddleware, isManager, getProject); // manager can see all the deatils along with all the users associate with it.
 
 router.post(
-  "/projects/:id/rate",
+  "/project/:id/rate",
   authMiddleware,
   isManager,
   rateProjectAndEmployees
