@@ -533,3 +533,56 @@ export const rateProjectAndEmployees = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Rating submission failed" });
   }
 };
+
+export const employee = async (req: Request, res: Response) => {
+  
+  try {
+    const allUser = await prisma.user.findMany({
+      where: {
+        role: "EMPLOYEE",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        designation: true,
+      },
+    });
+    return res.status(200).json({
+      message: "All Users Fetched Successfully",
+      users: allUser,
+    });
+  } catch (error) {
+    console.error("Error in projects route:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};
+
+export const manager = async (req: Request, res: Response) => {
+  try {
+    const allUser = await prisma.user.findMany({
+      where: {
+        role: "MANAGER",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        designation: true,
+      },
+    });
+    return res.status(200).json({
+      message: "All Users Fetched Successfully",
+      users: allUser,
+    });
+  } catch (error) {
+    console.error("Error in projects route:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+};

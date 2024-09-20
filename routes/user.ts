@@ -8,6 +8,8 @@ import {
   rateProjectAndEmployees,
   projects,
   getProject,
+  employee,
+  manager,
 } from "../controllers/user";
 import { authMiddleware, isManager } from "../middleware/authMiddleware";
 const router = Router();
@@ -29,5 +31,7 @@ router.post(
   rateProjectAndEmployees
 );
 
+router.get("/employee", employee);
+router.get("/manager", manager);
 
 export default router;
