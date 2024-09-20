@@ -6,12 +6,21 @@ import {
   deleteUser,
   createProject,
   getProjects,
+  rateProjectAndEmployees,
 } from "../controllers/user";
-import authMiddleware from "../middleware/authMiddleware";
+import { authMiddleware, isManager } from "../middleware/authMiddleware";
 const router = Router();
 router.get("/", root), router.post("/signup", signup);
 router.post("/login", login);
-router.delete("delete/:id", deleteUser);
-router.post("/project", createProject);
+router.delete("delete/:id", authMiddleware, isManager, deleteUser);
+router.post("/project", authMiddleware, isManager, createProject);
 router.get("/project", authMiddleware, getProjects);
+router.post(
+  "/projects/:id/rate",
+  authMiddleware,
+  isManager,
+  rateProjectAndEmployees
+);
+
+
 export default router;

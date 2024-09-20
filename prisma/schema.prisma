@@ -1,45 +1,122 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// // This is your Prisma schema file,
+// // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-// npx prisma db push
-// npx prisma migrate dev --name add-points-to-tasks
-// npx prisma generate
+// // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// // npx prisma db push
+// // npx prisma migrate dev --name add-points-to-tasks
+// // npx prisma generate
 
-generator client {
-  provider = "prisma-client-js"
-}
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "mongodb"
+//   url      = env("DATABASE_URL")
+// }
+
+// model User {
+//   id          String @id @default(auto()) @map("_id") @db.ObjectId
+//   email       String @unique
+//   //image         String
+//   name        String
+//   password    String
+//   designation String
+//   role        Role?
+//   rating      Float  @default(0)
+// }
+
+// enum Role {
+//   ADMIN
+//   MANAGER
+//   EMPLOYEE
+// }
+
+// model Projects {
+//   id            String   @id @default(auto()) @map("_id") @db.ObjectId
+//   name          String
+//   projectRating Float?
+//   startingDate  DateTime
+//   endDate       DateTime
+//   manager       User @relation(fields: [id], references: [id])
+// }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  email       String @unique
-  //image         String
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  email              String            @unique
+  name               String
+  password           String
+  designation        String
+  role               Role
+  projectsManaged    Project[]         @relation("ManagedProjects")
+  projectAssignments ProjectEmployee[] @relation("EmployeeAssignments")
+  feedbacks          Feedback[]        @relation("EmployeeFeedbacks")
+  managerFeedbacks   Feedback[]        @relation("ManagerFeedbacks")
+  ratings            Rating[]
+}
+
+model Project {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  password    String
-  designation String
-  role        Role?
-  rating      Float  @default(0)
+  description String
+  status      ProjectStatus     @default(ONGOING)
+  managerId   String            @db.ObjectId
+  manager     User              @relation("ManagedProjects", fields: [managerId], references: [id])
+  employees   ProjectEmployee[] @relation("ProjectAssignments")
+  ratings     Rating[]
+  feedbacks   Feedback[] // Changed to one-to-many relation
+  startDate   DateTime?
+  endDate     DateTime?
+}
+
+model ProjectEmployee {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  projectId  String  @db.ObjectId
+  employeeId String  @db.ObjectId
+  project    Project @relation("ProjectAssignments", fields: [projectId], references: [id])
+  employee   User    @relation("EmployeeAssignments", fields: [employeeId], references: [id])
+
+  @@unique([projectId, employeeId])
+}
+
+model Rating {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  projectId  String  @db.ObjectId
+  employeeId String? @db.ObjectId
+  rating     Int
+  review     String?
+  project    Project @relation(fields: [projectId], references: [id])
+  employee   User?   @relation(fields: [employeeId], references: [id])
+}
+
+model Feedback {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  projectId  String  @db.ObjectId
+  employeeId String? @db.ObjectId
+  managerId  String  @db.ObjectId
+  feedback   String
+  project    Project @relation(fields: [projectId], references: [id])
+  employee   User?   @relation("EmployeeFeedbacks", fields: [employeeId], references: [id])
+  manager    User    @relation("ManagerFeedbacks", fields: [managerId], references: [id])
 }
 
 enum Role {
-  ADMIN
   MANAGER
   EMPLOYEE
 }
 
-model Projects {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  projectRating Float?
-  startingDate  DateTime
-  endDate       DateTime
-  manager       User @relation(fields: [id], references: [id])
+enum ProjectStatus {
+  PENDING
+  ONGOING
+  COMPLETED
 }
-
-

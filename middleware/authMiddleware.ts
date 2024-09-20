@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  console.log("printing from the authMiddleware")
   const token = req.headers.authorization?.split(" ")[1]; // Bearer token
 
   if (!token) {
-    return res.status(401).json({ error: "Access denied. No token provided." });
+    return res.status(401).json({ error: "Access denied. from " });
   }
 
   try {
@@ -19,4 +20,14 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export default authMiddleware;
+export const isManager = (req: Request, res: Response, next: NextFunction) => {
+  console.log("printing from the isManager")
+  //@ts-ignore
+  console.log(req.body.role);
+  
+  //@ts-ignore
+  if (req.body.role !== 'MANAGER') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  next();
+};
