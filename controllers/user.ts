@@ -330,29 +330,6 @@ export const projects = async (req: Request, res: Response) => {
       });
     }
 
-    // const getAllProjects = await prisma.project.findMany({
-    //   where: {
-    //     OR: [
-    //       { managerId: userId },
-    //       {
-    //         employees: {
-    //           some: {
-    //             employeeId: userId,
-    //           },
-    //         },
-    //       },
-    //     ],
-    //   },
-    //   include: {
-    //     manager: true,
-    //     employees: {
-    //       include: {
-    //         employee: true,
-    //       },
-    //     },
-    //   },
-    // });
-
     const getAllProjects = await prisma.project.findMany({
       where: {
         OR: [
@@ -376,8 +353,6 @@ export const projects = async (req: Request, res: Response) => {
         managerId: true,
       },
     });
-
-    // return projects;
 
     if (getAllProjects.length === 0) {
       return res.status(404).json({
@@ -403,25 +378,49 @@ export const projects = async (req: Request, res: Response) => {
     });
   }
 };
-export const getProjects = async (req: Request, res: Response) => {
-  const projectId = req.body;
+
+export const getProject = async (req: Request, res: Response) => {
+  //@ts-ignore
+  const userId = req.user;
+  const { projectId } = req.params; // Assuming you are passing projectId as a route parameter
+
   try {
-    const getProjects = await prisma.project.findUnique({
+    const Project = await prisma.project.findFirst({
       where: {
-        id: projectId,
+        id: projectId, // Fetch only the project with the passed projectId
+        OR: [
+          { managerId: userId }, // Check if the user is the manager
+          {
+            employees: {
+              some: {
+                employeeId: userId, // Or if the user is one of the employees
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        manager: true,
+        employees: {
+          include: {
+            employee: true,
+          },
+        },
       },
     });
-    if (!getProjects) {
-      return res.status(400).json({
-        error: "NO Projects Found",
+
+    if (!Project) {
+      return res.status(404).json({
+        message: "Project Not Found",
       });
     }
+
     return res.status(200).json({
-      message: "Projects Details Fetched Successfully",
-      projects: getProjects, // Return the projects details
+      message: "Project Details Fetched Successfully",
+      Project,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Internal Server Error",
     });
   }

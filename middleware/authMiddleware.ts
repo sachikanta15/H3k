@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { Prisma, PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -20,6 +22,15 @@ export const authMiddleware = (
     console.log(decoded);
     //@ts-ignore
     req.user = decoded.userId; // Attach decoded token (user) to the request object
+    const userDetails = await prisma.user.findUnique({
+      where: {
+        //@ts-ignore
+        id: decoded.userId,
+      },
+    });
+    //@ts-ignore
+    req.role = userDetails?.role;
+
     next();
   } catch (err) {
     return res.status(400).json({ error: "Invalid token." });
@@ -32,7 +43,7 @@ export const isManager = (req: Request, res: Response, next: NextFunction) => {
   console.log(req.body.role);
 
   //@ts-ignore
-  if (req.body.role !== "MANAGER") {
+  if (req.role !== "MANAGER") {
     return res.status(403).json({ error: "Access denied" });
   }
   next();
