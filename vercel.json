@@ -1,20 +1,22 @@
 {
     "version": 2,
     "builds": [
-        {
-            "src": "./server.ts",
-            "use": "@vercel/node",
-            "config": {
-                "includeFiles": [
-                    "prisma/**"
-                ]
-            }
+      {
+        "src": "./server.ts",
+        "use": "@vercel/node",
+        "config": {
+          "includeFiles": [
+            "prisma/**"
+          ]
         }
+      }
     ],
     "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/server.ts"
-        }
-    ]
-}
+      {
+        "src": "/(.*)",
+        "dest": "/server.ts"
+      }
+    ],
+    "buildCommand": "npm run build && prisma generate"
+  }
+  
