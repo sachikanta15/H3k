@@ -452,7 +452,7 @@ export const projects = async (req: Request, res: Response) => {
 
 export const getProject = async (req: Request, res: Response) => {
   //@ts-ignore
-  const userId = req.user;
+  const userId = req.user; //only for manager
   const { projectId } = req.params; // Assuming you are passing projectId as a route parameter
 
   try {
@@ -691,5 +691,38 @@ export const getManagersWithProjectDetails = async (
     res.status(500).json({
       error: "Internal Server Error",
     });
+  }
+};
+
+export const getEmployeeDetails = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    const userDetails = await prisma.user.findUnique({
+      where: {
+        id: id.toString(),
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        designation: true,
+        role: true,
+      },
+    });
+
+    res.json({
+      message: " successfully Fetch User Details",
+
+      userDetails,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

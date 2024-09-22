@@ -11,6 +11,7 @@ import {
   allProjects,
   getManagersWithProjectDetails,
   getEmployeesWithProjectDetails,
+  getEmployeeDetails,
 } from "../controllers/user";
 import {
   authMiddleware,
@@ -50,5 +51,7 @@ router.get(
   isAmin,
   getEmployeesWithProjectDetails
 );
+
+router.get("/getUserDetails/:id", authMiddleware, getEmployeeDetails);
 
 export default router;
